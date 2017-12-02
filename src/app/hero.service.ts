@@ -7,42 +7,52 @@ import {MessageService} from './message.service';
 import {HEROES} from './mock-heroes';
 import {catchError, map, tap} from 'rxjs/operators';
 
+const httpOptions = {
+    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+};
 
 @Injectable()
 export class HeroService {
-  private heroesUrl = 'api/heroes';  // URL to web api
+    private heroesUrl = 'api/heroes';  // URL to web api
 
-  constructor(private messageService: MessageService,
-              private http: HttpClient) {
-  }
+    constructor(private messageService: MessageService,
+                private http: HttpClient) {
+    }
 
-  getHeroes(): Observable<Hero[]> {
-    return this.http.get<Hero[]>(this.heroesUrl)
-      .pipe(
-        tap(heroes => this.log('fetched heroes')),
-        catchError(this.handleError('hetHeroes', []))
-      );
-  }
+    getHeroes(): Observable<Hero[]> {
+        return this.http.get<Hero[]>(this.heroesUrl)
+            .pipe(
+                tap(heroes => this.log('fetched heroes')),
+                catchError(this.handleError('hetHeroes', []))
+            );
+    }
 
-  getHero(id: number): Observable<Hero> {
-    const url = `${this.heroesUrl}/${id}`;
-    return this.http.get<Hero>(url).pipe(
-        tap(heroes => this.log(`fetched hero id=${id}`)),
-        catchError(this.handleError<Hero>(`getHero id=${id}`))
-    )
-  }
+    getHero(id: number): Observable<Hero> {
+        const url = `${this.heroesUrl}/${id}`;
+        return this.http.get<Hero>(url).pipe(
+            tap(heroes => this.log(`fetched hero id=${id}`)),
+            catchError(this.handleError<Hero>(`getHero id=${id}`))
+        )
+    }
 
-  private log(message: string) {
-    this.messageService.add('HeroService: ' + message);
-  }
+    updateHero(hero: Hero): Observable<any> {
+        return this.http.put(this.heroesUrl, hero, httpOptions).pipe(
+            tap(_ => this.log(`updated hero id=${hero.id}`)),
+            catchError(this.handleError<any>('updateHero'))
+        );
+    }
 
-  private handleError<T>(operation = 'operation', result?: T) {
-    return (error: any): Observable<T> => {
-      console.error(error);
+    private log(message: string) {
+        this.messageService.add('HeroService: ' + message);
+    }
 
-      this.log(`${operation} failed: ${error.message}`);
+    private handleError<T>(operation = 'operation', result?: T) {
+        return (error: any): Observable<T> => {
+            console.error(error);
 
-      return of(result as T);
-    };
-  }
+            this.log(`${operation} failed: ${error.message}`);
+
+            return of(result as T);
+        };
+    }
 }
